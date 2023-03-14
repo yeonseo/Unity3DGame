@@ -13,7 +13,7 @@ public class Item : MonoBehaviour
     public Type type;
     public int value;
 
-    private readonly int itemRotateSpeet = 10;
+    private readonly int itemRotateSpeet = 30;
 
     private void Update()
     {

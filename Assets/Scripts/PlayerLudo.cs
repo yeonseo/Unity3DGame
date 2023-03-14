@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerLudo : MonoBehaviour
@@ -10,15 +11,20 @@ public class PlayerLudo : MonoBehaviour
     bool isDodge = false;
     bool isJump = false;
     int jumpPower = 15;
-
+    bool iDown = false;
+    
+    
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rigid;
     Animator anim;
-    
+    GameObject nearObject = null;
+
     private string TagFloor = "Floor";
-    
+    private string TagWeapon = "Weapon";
+    private string TagItem = "Item";
+
     private string IsWalk = "isWalk";
     private string IsRun = "isRun";
     private string DoJump = "doJump";
@@ -38,6 +44,7 @@ public class PlayerLudo : MonoBehaviour
         Turn();
         Jump();
         Dodge();
+        Interaction();
     }
 
     void GetInput()
@@ -46,6 +53,7 @@ public class PlayerLudo : MonoBehaviour
         vAxis = Input.GetAxis("Vertical");
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");
+        iDown = Input.GetButtonDown("Interaction");
     }
 
     void Move()
@@ -94,11 +102,36 @@ public class PlayerLudo : MonoBehaviour
         speed *= 0.5f;
         isDodge = false;
     }
+    
+    
+    private void Interaction()
+    {
+        if (iDown && nearObject is null && !isJump && !isDodge)
+        {
+        }
+    }
 
     private void OnCollisionEnter(Collision other)
     {
         if (!other.gameObject.CompareTag(TagFloor)) return;
         isJump = false;
         anim.SetBool(IsJump, isJump);
+    }
+    
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (nearObject.tag == TagWeapon)
+        {
+            nearObject = other.gameObject;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (nearObject.tag == TagWeapon)
+        {
+            nearObject = null;
+        }
     }
 }
