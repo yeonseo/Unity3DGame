@@ -1,36 +1,70 @@
-using System;
 using UnityEngine;
 
 public class PlayerLudo : MonoBehaviour
 {
     public float speed;
+    public GameObject[] weapons;
+    public bool[] hasWeapons;
+    
+    int jumpPower = 15;
+    
     float hAxis;
     float vAxis;
+    
+    /*********************************************
+     * Control
+     *********************************************/
     bool wDown;
     bool jDown;
-    bool isDodge = false;
+    
     bool isJump = false;
-    int jumpPower = 15;
+    bool isDodge = false;
+    bool isSwap = false;
+
     bool iDown = false;
+
+
+
+    /*********************************************
+     * Item
+     *********************************************/
+    bool sDown1 = false;
+    bool sDown2 = false;
+    bool sDown3 = false;
     
     
+    /*********************************************
+     * Object
+     *********************************************/
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rigid;
     Animator anim;
+    
     GameObject nearObject = null;
-
+    GameObject equipWeapon = null;
+    int equipWeaponIndex = -1;
+    
+    /*********************************************
+     * TAG
+     *********************************************/
     private string TagFloor = "Floor";
     private string TagWeapon = "Weapon";
     private string TagItem = "Item";
 
+    /*********************************************
+     * Anim Parameter
+     *********************************************/
     private string IsWalk = "isWalk";
     private string IsRun = "isRun";
+    private string IsJump = "isJump";
     private string DoJump = "doJump";
     private string DoDodge = "doDodge";
-    private string IsJump = "isJump";
+    private string DoSwap = "doSwap";
 
+
+    
     void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -45,7 +79,9 @@ public class PlayerLudo : MonoBehaviour
         Jump();
         Dodge();
         Interaction();
+        Swap();
     }
+
 
     void GetInput()
     {
@@ -54,12 +90,21 @@ public class PlayerLudo : MonoBehaviour
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");
         iDown = Input.GetButtonDown("Interaction");
+        sDown1 = Input.GetButtonDown("Swap1");
+        sDown2 = Input.GetButtonDown("Swap2");
+        sDown3 = Input.GetButtonDown("Swap3");
     }
 
+    
+    
+    /*********************************************
+     * Method Control
+     *********************************************/
     void Move()
     {
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;
         if (isDodge) moveVec = dodgeVec;
+        if (isSwap) moveVec = Vector3.zero;
 
         transform.position += moveVec * (speed * (wDown ? 0.3f : 1) * Time.deltaTime);
 
@@ -74,7 +119,7 @@ public class PlayerLudo : MonoBehaviour
 
     void Jump()
     {
-        if (jDown && moveVec == Vector3.zero && !isJump && !isDodge)
+        if (jDown && moveVec == Vector3.zero && !isJump && !isDodge && !isSwap)
         {
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
             isJump = true;
@@ -86,29 +131,69 @@ public class PlayerLudo : MonoBehaviour
     
     void Dodge()
     {
-        if (jDown && moveVec != Vector3.zero && !isJump && !isDodge)
+        if (jDown && moveVec != Vector3.zero && !isJump && !isDodge && !isSwap)
         {
             dodgeVec = moveVec;
             speed *= 2;
             anim.SetTrigger(DoDodge);
             isDodge = true;
 
-            Invoke("DoDgeOut", 0.4f);
+            Invoke("DodgeOut", 0.4f);
+        }
+    }
+    
+    void Interaction()
+    {
+        if (iDown && nearObject is not null && !isJump && !isDodge && !isSwap)
+        {
+            if (nearObject.tag == TagWeapon)
+            {
+                Item item = nearObject.GetComponent<Item>();
+                int weaponIndex = item.value;
+                hasWeapons[weaponIndex] = true;
+                
+                Destroy(nearObject);
+            }
+        }
+    }
+    
+    void Swap()
+    {
+        if (sDown1 && (!hasWeapons[0] || equipWeaponIndex == 0)) return;
+        if (sDown2 && (!hasWeapons[1] || equipWeaponIndex == 1)) return;
+        if (sDown3 && (!hasWeapons[2] || equipWeaponIndex == 2)) return;
+
+        int weaponIndex = -1;
+        if (sDown1) weaponIndex = 0;
+        if (sDown2) weaponIndex = 1;
+        if (sDown3) weaponIndex = 2;
+        
+        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isSwap)
+        {
+            if (equipWeapon != null)
+            {
+                equipWeapon.SetActive(false);
+            }
+            equipWeaponIndex = weaponIndex;
+            equipWeapon = weapons[weaponIndex];
+            equipWeapon.SetActive(true);
+            
+            anim.SetTrigger(DoSwap);
+
+            isSwap = true;
+            Invoke("SwapOut", 0.4f);
         }
     }
 
-    void DoDgeOut()
+    void DodgeOut()
     {
         speed *= 0.5f;
         isDodge = false;
     }
     
-    
-    private void Interaction()
+    void SwapOut()
     {
-        if (iDown && nearObject is null && !isJump && !isDodge)
-        {
-        }
+        isSwap = false;
     }
 
     private void OnCollisionEnter(Collision other)
@@ -118,10 +203,9 @@ public class PlayerLudo : MonoBehaviour
         anim.SetBool(IsJump, isJump);
     }
     
-
     private void OnTriggerStay(Collider other)
     {
-        if (nearObject.tag == TagWeapon)
+        if (other.tag == TagWeapon)
         {
             nearObject = other.gameObject;
         }
