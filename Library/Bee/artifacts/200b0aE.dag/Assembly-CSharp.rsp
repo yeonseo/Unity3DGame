@@ -357,6 +357,7 @@
 "Assets/Scripts/CameraMoving.cs"
 "Assets/Scripts/Follow.cs"
 "Assets/Scripts/Item.cs"
+"Assets/Scripts/Orbit.cs"
 "Assets/Scripts/Player.cs"
 "Assets/Scripts/PlayerLudo.cs"
 "Assets/Scripts/SceneLoader.cs"

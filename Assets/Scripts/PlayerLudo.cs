@@ -5,6 +5,19 @@ public class PlayerLudo : MonoBehaviour
     public float speed;
     public GameObject[] weapons;
     public bool[] hasWeapons;
+    public GameObject[] grenades;
+    public int hasGrenades;
+
+    
+    public int ammo;
+    public int coin;
+    public int heart;
+    
+    
+    public int maxAmmo;
+    public int maxCoin;
+    public int maxHeart;
+    public int maxHasGrenades;
     
     int jumpPower = 15;
     
@@ -12,7 +25,7 @@ public class PlayerLudo : MonoBehaviour
     float vAxis;
     
     /*********************************************
-     * Control
+     * Input Control
      *********************************************/
     bool wDown;
     bool jDown;
@@ -26,7 +39,7 @@ public class PlayerLudo : MonoBehaviour
 
 
     /*********************************************
-     * Item
+     * Input Item
      *********************************************/
     bool sDown1 = false;
     bool sDown2 = false;
@@ -45,7 +58,7 @@ public class PlayerLudo : MonoBehaviour
     GameObject nearObject = null;
     GameObject equipWeapon = null;
     int equipWeaponIndex = -1;
-    
+
     /*********************************************
      * TAG
      *********************************************/
@@ -202,7 +215,48 @@ public class PlayerLudo : MonoBehaviour
         isJump = false;
         anim.SetBool(IsJump, isJump);
     }
-    
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == TagItem)
+        {
+            Item item = other.GetComponent<Item>();
+            switch (item.type)
+            {
+                case Item.Type.Ammo:
+                    ammo += item.value;
+                    if (ammo > maxAmmo)
+                    {
+                        ammo = maxAmmo;
+                    }
+                    break;
+                case Item.Type.Coin:
+                    coin += item.value;
+                    if (coin > maxCoin)
+                    {
+                        coin = maxCoin;
+                    }
+                    break;
+                case Item.Type.Heart:
+                    heart += item.value;
+                    if (heart > maxHeart)
+                    {
+                        heart = maxHeart;
+                    }
+                    break;
+                case Item.Type.Grenade:
+                    hasGrenades += item.value;
+                    if (hasGrenades > maxHasGrenades)
+                    {
+                        hasGrenades = maxHasGrenades;
+                    }
+                    break;
+            }
+            
+            Destroy(other.gameObject);
+        }
+    }
+
     private void OnTriggerStay(Collider other)
     {
         if (other.tag == TagWeapon)
