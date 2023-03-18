@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerLudo : MonoBehaviour
@@ -7,7 +8,7 @@ public class PlayerLudo : MonoBehaviour
     public bool[] hasWeapons;
     public GameObject[] grenades;
     public int hasGrenades;
-
+    public Camera followCamera;
     
     public int ammo;
     public int coin;
@@ -35,9 +36,13 @@ public class PlayerLudo : MonoBehaviour
     bool isSwap = false;
 
     bool iDown = false;
-
-
-
+    
+    bool fDown = false;
+    bool rDown = false;
+    bool isFireReady = true;
+    bool isReload = false;
+    
+    
     /*********************************************
      * Input Item
      *********************************************/
@@ -56,8 +61,10 @@ public class PlayerLudo : MonoBehaviour
     Animator anim;
     
     GameObject nearObject = null;
-    GameObject equipWeapon = null;
+    Weapon equipWeapon = null;
     int equipWeaponIndex = -1;
+    private float fireDelay;
+    
 
     /*********************************************
      * TAG
@@ -75,6 +82,9 @@ public class PlayerLudo : MonoBehaviour
     private string DoJump = "doJump";
     private string DoDodge = "doDodge";
     private string DoSwap = "doSwap";
+    private string DoSwing = "doSwing";
+    private string DoShot = "doShot";
+    private string DoReload = "doReload";
 
 
     
@@ -93,6 +103,8 @@ public class PlayerLudo : MonoBehaviour
         Dodge();
         Interaction();
         Swap();
+        Attack();
+        Reload();
     }
 
 
@@ -102,6 +114,8 @@ public class PlayerLudo : MonoBehaviour
         vAxis = Input.GetAxis("Vertical");
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");
+        fDown = Input.GetButton("Fire1");
+        rDown = Input.GetButton("Reload");
         iDown = Input.GetButtonDown("Interaction");
         sDown1 = Input.GetButtonDown("Swap1");
         sDown2 = Input.GetButtonDown("Swap2");
@@ -117,7 +131,7 @@ public class PlayerLudo : MonoBehaviour
     {
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;
         if (isDodge) moveVec = dodgeVec;
-        if (isSwap) moveVec = Vector3.zero;
+        if (isSwap || !isFireReady || isReload) moveVec = Vector3.zero;
 
         transform.position += moveVec * (speed * (wDown ? 0.3f : 1) * Time.deltaTime);
 
@@ -127,7 +141,21 @@ public class PlayerLudo : MonoBehaviour
 
     void Turn()
     {
+        // keyboard
         transform.LookAt(transform.position + moveVec);
+        
+        // mouse
+        if (fDown)
+        {
+             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit raycastHit;
+            if (Physics.Raycast(ray, out raycastHit, 100))
+            {
+                Vector3 nextVec = raycastHit.point - transform.position;
+                nextVec.y = 0;
+                transform.LookAt(transform.position + nextVec);
+            }
+        }
     }
 
     void Jump()
@@ -185,17 +213,61 @@ public class PlayerLudo : MonoBehaviour
         {
             if (equipWeapon != null)
             {
-                equipWeapon.SetActive(false);
+                equipWeapon.gameObject.SetActive(false);
             }
             equipWeaponIndex = weaponIndex;
-            equipWeapon = weapons[weaponIndex];
-            equipWeapon.SetActive(true);
+            equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();
+            equipWeapon.gameObject.SetActive(true);
             
             anim.SetTrigger(DoSwap);
 
             isSwap = true;
             Invoke("SwapOut", 0.4f);
         }
+    }
+    
+    
+    void Attack()
+    {
+        if (equipWeapon == null)
+        {
+            return;
+        }
+
+        fireDelay += Time.deltaTime;
+        isFireReady = equipWeapon.rate < fireDelay;
+
+        if (fDown && isFireReady && !isDodge && !isSwap)
+        {
+            equipWeapon.Use();
+            anim.SetTrigger(equipWeapon.type == Weapon.Type.Melee ? DoSwing : DoShot);
+            fireDelay = 0;
+        }
+    }
+    
+    
+
+    void Reload()
+    {
+        if (equipWeapon == null || equipWeapon.type == Weapon.Type.Melee || ammo == 0)
+        {
+            return;
+        }
+
+        Debug.Log(isFireReady);
+        if (rDown && !isJump && !isDodge && !isSwap && isFireReady)
+        {
+            anim.SetTrigger(DoReload);
+            isReload = true;
+            Invoke("ReloadOut", 1.5f);
+        }
+     }
+    void ReloadOut()
+    {
+        int reAmmo = ammo > equipWeapon.maxAmmo ? ammo : equipWeapon.maxAmmo;
+        equipWeapon.curAmmo = reAmmo;
+        ammo -= reAmmo;
+        isReload = false;
     }
 
     void DodgeOut()
@@ -245,6 +317,7 @@ public class PlayerLudo : MonoBehaviour
                     }
                     break;
                 case Item.Type.Grenade:
+                    grenades[hasGrenades].SetActive(true);
                     hasGrenades += item.value;
                     if (hasGrenades > maxHasGrenades)
                     {
