@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class PlayerLudo : MonoBehaviour
@@ -9,48 +8,48 @@ public class PlayerLudo : MonoBehaviour
     public GameObject[] grenades;
     public int hasGrenades;
     public Camera followCamera;
-    
+
     public int ammo;
     public int coin;
     public int heart;
-    
-    
+
+
     public int maxAmmo;
     public int maxCoin;
     public int maxHeart;
     public int maxHasGrenades;
-    
-    int jumpPower = 15;
-    
+
+    readonly int jumpPower = 15;
+
     float hAxis;
     float vAxis;
-    
+
     /*********************************************
      * Input Control
      *********************************************/
     bool wDown;
     bool jDown;
-    
-    bool isJump = false;
-    bool isDodge = false;
-    bool isSwap = false;
 
-    bool iDown = false;
-    
-    bool fDown = false;
-    bool rDown = false;
+    bool isJump;
+    bool isDodge;
+    bool isSwap;
+
+    bool iDown;
+
+    bool fDown;
+    bool rDown;
     bool isFireReady = true;
-    bool isReload = false;
-    
-    
+    bool isReload;
+
+
     /*********************************************
      * Input Item
      *********************************************/
-    bool sDown1 = false;
-    bool sDown2 = false;
-    bool sDown3 = false;
-    
-    
+    bool sDown1;
+    bool sDown2;
+    bool sDown3;
+
+
     /*********************************************
      * Object
      *********************************************/
@@ -59,35 +58,35 @@ public class PlayerLudo : MonoBehaviour
 
     Rigidbody rigid;
     Animator anim;
-    
-    GameObject nearObject = null;
-    Weapon equipWeapon = null;
+
+    GameObject nearObject;
+    Weapon equipWeapon;
     int equipWeaponIndex = -1;
-    private float fireDelay;
-    
+    float fireDelay;
+
 
     /*********************************************
      * TAG
      *********************************************/
-    private string TagFloor = "Floor";
-    private string TagWeapon = "Weapon";
-    private string TagItem = "Item";
+    readonly string TagFloor = "Floor";
+    readonly string TagWeapon = "Weapon";
+    readonly string TagItem = "Item";
 
     /*********************************************
      * Anim Parameter
      *********************************************/
-    private string IsWalk = "isWalk";
-    private string IsRun = "isRun";
-    private string IsJump = "isJump";
-    private string DoJump = "doJump";
-    private string DoDodge = "doDodge";
-    private string DoSwap = "doSwap";
-    private string DoSwing = "doSwing";
-    private string DoShot = "doShot";
-    private string DoReload = "doReload";
+    readonly string IsWalk = "isWalk";
+    readonly string IsRun = "isRun";
+    readonly string IsJump = "isJump";
+    readonly string DoJump = "doJump";
+    readonly string DoDodge = "doDodge";
+    readonly string DoSwap = "doSwap";
+    readonly string DoSwing = "doSwing";
+    readonly string DoShot = "doShot";
+    readonly string DoReload = "doReload";
 
 
-    
+
     void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -107,7 +106,6 @@ public class PlayerLudo : MonoBehaviour
         Reload();
     }
 
-
     void GetInput()
     {
         hAxis = Input.GetAxis("Horizontal");
@@ -122,8 +120,7 @@ public class PlayerLudo : MonoBehaviour
         sDown3 = Input.GetButtonDown("Swap3");
     }
 
-    
-    
+
     /*********************************************
      * Method Control
      *********************************************/
@@ -143,11 +140,11 @@ public class PlayerLudo : MonoBehaviour
     {
         // keyboard
         transform.LookAt(transform.position + moveVec);
-        
+
         // mouse
         if (fDown)
         {
-             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit raycastHit;
             if (Physics.Raycast(ray, out raycastHit, 100))
             {
@@ -164,12 +161,12 @@ public class PlayerLudo : MonoBehaviour
         {
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
             isJump = true;
-            anim.SetBool(IsJump, isJump);        
+            anim.SetBool(IsJump, isJump);
             anim.SetTrigger(DoJump);
         }
-       
+
     }
-    
+
     void Dodge()
     {
         if (jDown && moveVec != Vector3.zero && !isJump && !isDodge && !isSwap)
@@ -182,7 +179,7 @@ public class PlayerLudo : MonoBehaviour
             Invoke("DodgeOut", 0.4f);
         }
     }
-    
+
     void Interaction()
     {
         if (iDown && nearObject is not null && !isJump && !isDodge && !isSwap)
@@ -192,12 +189,12 @@ public class PlayerLudo : MonoBehaviour
                 Item item = nearObject.GetComponent<Item>();
                 int weaponIndex = item.value;
                 hasWeapons[weaponIndex] = true;
-                
+
                 Destroy(nearObject);
             }
         }
     }
-    
+
     void Swap()
     {
         if (sDown1 && (!hasWeapons[0] || equipWeaponIndex == 0)) return;
@@ -208,7 +205,7 @@ public class PlayerLudo : MonoBehaviour
         if (sDown1) weaponIndex = 0;
         if (sDown2) weaponIndex = 1;
         if (sDown3) weaponIndex = 2;
-        
+
         if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isSwap)
         {
             if (equipWeapon != null)
@@ -218,15 +215,14 @@ public class PlayerLudo : MonoBehaviour
             equipWeaponIndex = weaponIndex;
             equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();
             equipWeapon.gameObject.SetActive(true);
-            
+
             anim.SetTrigger(DoSwap);
 
             isSwap = true;
             Invoke("SwapOut", 0.4f);
         }
     }
-    
-    
+
     void Attack()
     {
         if (equipWeapon == null)
@@ -244,8 +240,6 @@ public class PlayerLudo : MonoBehaviour
             fireDelay = 0;
         }
     }
-    
-    
 
     void Reload()
     {
@@ -254,14 +248,17 @@ public class PlayerLudo : MonoBehaviour
             return;
         }
 
-        Debug.Log(isFireReady);
         if (rDown && !isJump && !isDodge && !isSwap && isFireReady)
         {
             anim.SetTrigger(DoReload);
             isReload = true;
             Invoke("ReloadOut", 1.5f);
         }
-     }
+    }
+
+
+
+
     void ReloadOut()
     {
         int reAmmo = ammo > equipWeapon.maxAmmo ? ammo : equipWeapon.maxAmmo;
@@ -275,20 +272,23 @@ public class PlayerLudo : MonoBehaviour
         speed *= 0.5f;
         isDodge = false;
     }
-    
+
     void SwapOut()
     {
         isSwap = false;
     }
 
-    private void OnCollisionEnter(Collision other)
+
+
+
+    void OnCollisionEnter(Collision other)
     {
         if (!other.gameObject.CompareTag(TagFloor)) return;
         isJump = false;
         anim.SetBool(IsJump, isJump);
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.tag == TagItem)
         {
@@ -325,12 +325,12 @@ public class PlayerLudo : MonoBehaviour
                     }
                     break;
             }
-            
+
             Destroy(other.gameObject);
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    void OnTriggerStay(Collider other)
     {
         if (other.tag == TagWeapon)
         {
@@ -338,7 +338,7 @@ public class PlayerLudo : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    void OnTriggerExit(Collider other)
     {
         if (nearObject.tag == TagWeapon)
         {

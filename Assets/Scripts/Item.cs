@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Item : MonoBehaviour
@@ -13,9 +10,9 @@ public class Item : MonoBehaviour
     public Type type;
     public int value;
 
-    private readonly int itemRotateSpeet = 30;
+    readonly int itemRotateSpeet = 30;
 
-    private void Update()
+    void Update()
     {
         transform.Rotate(Vector3.up * (itemRotateSpeet * Time.deltaTime));
     }
