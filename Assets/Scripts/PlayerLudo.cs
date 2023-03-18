@@ -40,7 +40,7 @@ public class PlayerLudo : MonoBehaviour
     bool rDown;
     bool isFireReady = true;
     bool isReload;
-
+    bool isBoarder;
 
     /*********************************************
      * Input Item
@@ -130,7 +130,10 @@ public class PlayerLudo : MonoBehaviour
         if (isDodge) moveVec = dodgeVec;
         if (isSwap || !isFireReady || isReload) moveVec = Vector3.zero;
 
-        transform.position += moveVec * (speed * (wDown ? 0.3f : 1) * Time.deltaTime);
+        if (!isBoarder)
+        {
+            transform.position += moveVec * (speed * (wDown ? 0.3f : 1) * Time.deltaTime);
+        }
 
         anim.SetBool(IsRun, moveVec != Vector3.zero);
         anim.SetBool(IsWalk, wDown);
@@ -257,6 +260,21 @@ public class PlayerLudo : MonoBehaviour
     }
 
 
+    void FreezeRotaion()
+    {
+        rigid.angularVelocity = Vector3.zero;
+    }
+
+    void FixedUpdate()
+    {
+        FreezeRotaion();
+        StopToWall();
+    }
+    void StopToWall()
+    {
+        Debug.DrawRay(transform.position, transform.forward * 5, Color.green);
+        isBoarder = Physics.Raycast(transform.position, transform.forward, 5, LayerMask.GetMask("Wall"));
+    }
 
 
     void ReloadOut()
