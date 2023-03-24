@@ -5,7 +5,7 @@ public class Item : MonoBehaviour
 {
     public enum Type
     {
-        Ammo, Coin, Grenade, Heart, Weapon, Tree, Food
+        Ammo, Coin, Grenade, Heart, Weapon, Food
     }
 
     public Type type;
@@ -23,7 +23,14 @@ public class Item : MonoBehaviour
 
     void Update()
     {
-        transform.Rotate(Vector3.up * (itemRotateSpeet * Time.deltaTime));
+        if (_rigid.velocity.y == 0 && transform.tag == "DropItem")
+        {
+            transform.tag = "Item";
+        }
+        else
+        {
+            transform.Rotate(Vector3.up * (itemRotateSpeet * Time.deltaTime));
+        }
     }
 
     void OnCollisionEnter(Collision collision)

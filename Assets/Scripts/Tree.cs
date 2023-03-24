@@ -1,69 +1,61 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class Tree : MonoBehaviour
 {
-    public enum Type { Fruit, Leaf }
+    public enum Type { Fruit, Wood }
 
     public Type type;
-    public int damage;
-    public float rate;
+    public int maxHealth;
+    public int curHealth;
+    public int fRangeFirst = -3;
+    public int fRangeSec = 3;
 
-    public int maxFruit;
-    public int curFruit;
-
-    public BoxCollider hitArea;
-    public TrailRenderer trailEffect;
-
+    Rigidbody rigid; 
+    BoxCollider hitArea;
+    
     public Transform treePos;
     public GameObject tree;
     public Transform treeFruitPos;
-    public GameObject fruit;
-    public void Use()
+    public GameObject fruit; 
+    
+    void Awake()
     {
-        if (type == Type.Fruit)
+        rigid = GetComponent<Rigidbody>();
+        hitArea = GetComponent<BoxCollider>();
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == Weapon.Type.Melee.ToString())
         {
-            // TODO 과일이 떨어지고, 값이 감소 한다.
-            curFruit--;
-            StartCoroutine("Shot");
+            Weapon weapon = other.GetComponent<Weapon>();
+            curHealth --;
+            StartCoroutine(OnDemage());
         }
-
-        else if (type == Type.Leaf && curFruit > 0)
+        else if (other.tag == Weapon.Type.Range.ToString())
         {
-            // TODO 캐릭터의 움직임은 계속,
-            // TODO 나뭇잎이나 나뭇가지가 떨어지는 모션
+            // TODO 이 외의 공격 처리
+            // StartCoroutine(OnDemage());
         }
     }
 
-    IEnumerator Swing()
+    IEnumerator OnDemage()
     {
-        // 1.
-        yield return new WaitForSeconds(0.3f); // 0.1 sec wait
-        hitArea.enabled = true;
-        trailEffect.enabled = true;
-
-        // 2.
-        yield return new WaitForSeconds(0.3f); // 0.1 sec wait
-        hitArea.enabled = false;
-        // 3.
-        yield return new WaitForSeconds(0.3f); // 0.1 sec wait
-        trailEffect.enabled = false;
+        yield return new WaitForSeconds(0.1f); // 1 frame wait
+        
+        if (curHealth > 0)
+        {
+            GameObject intantTree = Instantiate(fruit, treeFruitPos.position, treeFruitPos.rotation);
+            Rigidbody fruitRigid = intantTree.GetComponent<Rigidbody>();
+            Vector3 fruitVec = treeFruitPos.up * Random.Range(-0.5f, -1) + Vector3.forward * Random.Range(fRangeFirst, fRangeSec) + Vector3.left * Random.Range(fRangeFirst, fRangeSec);
+            fruitRigid.AddForce(fruitVec, ForceMode.Impulse);
+            fruitRigid.AddTorque(Vector3.up * Random.Range(-4, 4), ForceMode.Impulse);
+        }
+        else
+        {
+            gameObject.layer = 16;
+            Destroy(gameObject, 2);
+        }
     }
-
-    IEnumerator Shot()
-    {
-        // GameObject intantFruit = Instantiate(tree, treePos.position, treePos.rotation);
-        // Rigidbody bulletRigid = intantFruit.GetComponent<Rigidbody>();
-        // bulletRigid.velocity = treePos.up * -9;
-
-        yield return null; // 1 frame wait
-
-        GameObject intantTree = Instantiate(fruit, treeFruitPos.position, treeFruitPos.rotation);
-        Rigidbody fruitRigid = intantTree.GetComponent<Rigidbody>();
-        Vector3 fruitVec = treeFruitPos.up * Random.Range(-3, -2) + Vector3.forward * Random.Range(-3, 3);
-        fruitRigid.AddForce(fruitVec, ForceMode.Impulse);
-        fruitRigid.AddTorque(Vector3.up * Random.Range(-4, 4), ForceMode.Impulse);
-    }
-
 }

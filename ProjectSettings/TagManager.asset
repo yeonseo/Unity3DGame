@@ -8,6 +8,8 @@ TagManager:
   - Item
   - Weapon
   - Melee
+  - Bullet
+  - Tree
   layers:
   - Default
   - TransparentFX
@@ -23,9 +25,9 @@ TagManager:
   - BulletCase
   - Wall
   - Coin
-  - 
-  - 
-  - 
+  - Tree
+  - Enemy
+  - EnemyDead
   - 
   - 
   - 

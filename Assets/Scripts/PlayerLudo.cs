@@ -12,11 +12,13 @@ public class PlayerLudo : MonoBehaviour
     public int ammo;
     public int coin;
     public int heart;
+    public int apple;
 
 
     public int maxAmmo;
     public int maxCoin;
     public int maxHeart;
+    public int maxApple;
     public int maxHasGrenades;
 
     readonly int jumpPower = 15;
@@ -340,6 +342,13 @@ public class PlayerLudo : MonoBehaviour
                     if (hasGrenades > maxHasGrenades)
                     {
                         hasGrenades = maxHasGrenades;
+                    }
+                    break;
+                case Item.Type.Food:
+                    apple += item.value;
+                    if (apple > maxApple)
+                    {
+                        apple = maxApple;
                     }
                     break;
             }
